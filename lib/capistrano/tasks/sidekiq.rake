@@ -50,10 +50,10 @@ namespace :sidekiq do
       pid_labels = fetch(:"#{ role }_pid_label_per_process") || fetch(:sidekiq_pid_label_per_process)
       processes.times do |idx|
         pid_label = pid_labels[idx]
-        if pid_label.present?
-          pids.push fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{pid_label}.pid")
-        else
+        if pid_label.nil? || pid_label.empty?
           pids.push fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{idx}.pid")
+        else
+          pids.push fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{pid_label}.pid")
         end
       end
     end
