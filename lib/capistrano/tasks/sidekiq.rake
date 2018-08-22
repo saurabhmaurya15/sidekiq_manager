@@ -10,6 +10,7 @@ namespace :load do
     set :sidekiq_role, -> { :app }
     set :sidekiq_processes, -> { 1 }
     set :sidekiq_options_per_process, -> { nil }
+    set :sidekiq_labels_per_process, -> { [] }
     set :sidekiq_user, -> { nil }
     # Rbenv, Chruby, and RVM integration
     set :rbenv_map_bins, fetch(:rbenv_map_bins).to_a.concat(%w(sidekiq sidekiqctl))
@@ -46,8 +47,14 @@ namespace :sidekiq do
     sidekiq_roles.each do |role|
       # next unless host.roles.include?(role)
       processes = fetch(:"#{ role }_processes") || fetch(:sidekiq_processes)
+      pid_labels = fetch(:"#{ role }_labels_per_process") || fetch(:sidekiq_labels_per_process)
       processes.times do |idx|
-        pids.push fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{idx}.pid")
+        pid_label = pid_labels[idx]
+        if pid_label.present?
+          pids.push fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{pid_label}.pid")
+        else
+          pids.push fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{idx}.pid")
+        end
       end
     end
 
