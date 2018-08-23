@@ -1,0 +1,62 @@
+AllCops:
+  DisplayCopNames: true
+  Exclude:
+    - 'db/schema.rb'
+
+FormatParameterMismatch:
+  Enabled: false
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: false
+
+Lint/AssignmentInCondition:
+  Enabled: false
+
+Metrics/LineLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Max: 30
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/ModuleLength:
+  Max: 250
+
+Metrics/AbcSize:
+  Max: 25
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Max: 30
+
+Security/YAMLLoad:
+  Enabled: false
+
+Style/Documentation:
+  Description: 'Document classes and non-namespace modules.'
+  Enabled: false
+
+Layout/AlignParameters:
+  Enabled: false
+
+Style/NumericLiteralPrefix:
+  Enabled: false
+
+Naming/PredicateName:
+  Enabled: false
+
+Style/GlobalVars:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
