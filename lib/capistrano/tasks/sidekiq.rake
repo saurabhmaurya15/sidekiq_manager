@@ -11,6 +11,7 @@ namespace :load do
     set :sidekiq_processes, -> { 1 }
     set :sidekiq_options_per_process, -> { nil }
     set :sidekiq_pid_label_per_process, -> { [] }
+    set :sidekiq_stop_on_complete, -> { false }
     set :sidekiq_user, -> { nil }
     # Rbenv, Chruby, and RVM integration
     set :rbenv_map_bins, fetch(:rbenv_map_bins).to_a.concat(%w(sidekiq sidekiqctl))
@@ -61,6 +62,11 @@ namespace :sidekiq do
     pids
   end
 
+  def options_for_process(index)
+    process_options = fetch(:sidekiq_options_per_process)
+    process_options[idx]
+  end
+
   def pid_process_exists?(pid_file)
     pid_file_exists?(pid_file) and test(*("kill -0 $( cat #{pid_file} )").split(' '))
   end
@@ -81,6 +87,10 @@ namespace :sidekiq do
     end
   end
 
+  def stop_sidekiq_on_complete(pid_file)
+    execute :sidekiq_manager, 'sidekiq', 'stop_on_complete', "#{pid_file}"
+  end
+
   def quiet_sidekiq(pid_file)
     if fetch(:sidekiq_use_signals)
       background "kill -USR1 `cat #{pid_file}`"
@@ -94,7 +104,7 @@ namespace :sidekiq do
     end
   end
 
-  def start_sidekiq(pid_file, idx = 0)
+  def start_sidekiq(pid_file, process_options = nil)
     args = []
     args.push "--index #{idx}"
     args.push "--pidfile #{pid_file}"
@@ -107,9 +117,9 @@ namespace :sidekiq do
     end
     args.push "--config #{fetch(:sidekiq_config)}" if fetch(:sidekiq_config)
     args.push "--concurrency #{fetch(:sidekiq_concurrency)}" if fetch(:sidekiq_concurrency)
-    if process_options = fetch(:sidekiq_options_per_process)
-      args.push process_options[idx]
-    end
+
+    # passed from sidekiq_options_per_process
+    args.push process_options if process_options
     # use sidekiq_options for special options
     args.push fetch(:sidekiq_options) if fetch(:sidekiq_options)
 
@@ -127,9 +137,10 @@ namespace :sidekiq do
   end
 
   task :add_default_hooks do
+    stop_on_complete = fetch(:sidekiq_stop_on_complete)
     after 'deploy:starting', 'sidekiq:quiet'
-    after 'deploy:updated', 'sidekiq:stop'
-    after 'deploy:reverted', 'sidekiq:stop'
+    after('deploy:updated', stop_on_complete ? 'sidekiq:stop_on_complete' : 'sidekiq:stop')
+    after('deploy:reverted', stop_on_complete ? 'sidekiq:stop_on_complete' : 'sidekiq:stop')
     after 'deploy:published', 'sidekiq:start'
   end
 
@@ -164,12 +175,28 @@ namespace :sidekiq do
     Rake::Task["sidekiq:stop"].reenable
   end
 
+  desc 'Stop sidekiq on Job Completion'
+  task :stop_on_complete do
+    on roles fetch(:sidekiq_role) do |role|
+      switch_user(role) do
+        if test("[ -d #{release_path} ]")
+          for_each_process(true) do |pid_file, idx|
+            if pid_process_exists?(pid_file)
+              stop_sidekiq_on_complete(pid_file)
+            end
+          end
+        end
+      end
+    end
+    Rake::Task["sidekiq:stop"].reenable
+  end
+
   desc 'Start sidekiq'
   task :start do
     on roles fetch(:sidekiq_role) do |role|
       switch_user(role) do
         for_each_process do |pid_file, idx|
-          start_sidekiq(pid_file, idx) unless pid_process_exists?(pid_file)
+          start_sidekiq(pid_file, options_for_process(idx)) unless pid_process_exists?(pid_file)
         end
       end
     end
@@ -189,7 +216,7 @@ namespace :sidekiq do
           if pid_process_exists?(pid_file)
             stop_sidekiq(pid_file)
           end
-          start_sidekiq(pid_file, idx)
+          start_sidekiq(pid_file, options_for_process(idx))
         end
       end
     end
@@ -216,7 +243,7 @@ namespace :sidekiq do
       switch_user(role) do
         for_each_process do |pid_file, idx|
           unless pid_file_exists?(pid_file)
-            start_sidekiq(pid_file, idx)
+            start_sidekiq(pid_file, options_for_process(idx))
           end
         end
       end
