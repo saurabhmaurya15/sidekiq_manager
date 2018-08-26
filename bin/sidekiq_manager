@@ -3,11 +3,13 @@
 # Quiet some warnings we see when running in warning mode:
 # RUBYOPT=-w bundle exec sidekiq
 $TESTING = false
+$DEBUG = false
 
 require_relative '../lib/sidekiq_manager/cli'
 
 begin
-  cli = SidekiqManager::CLI.new
+  cli = SidekiqManager::CLI.instance
+  cli.parse
   cli.run
 rescue => e
   raise e if $DEBUG

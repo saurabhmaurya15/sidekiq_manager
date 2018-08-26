@@ -1,4 +1,5 @@
 require 'byebug'
+
 namespace :load do
   task :defaults do
     set :sidekiq_default_hooks, -> { true }
@@ -14,7 +15,7 @@ namespace :load do
     set :sidekiq_stop_on_complete, -> { false }
     set :sidekiq_user, -> { nil }
     # Rbenv, Chruby, and RVM integration
-    set :rbenv_map_bins, fetch(:rbenv_map_bins).to_a.concat(%w(sidekiq sidekiqctl))
+    set :rbenv_map_bins, fetch(:rbenv_map_bins).to_a.concat(%w(sidekiq sidekiqctl sidekiq_manager))
     set :rvm_map_bins, fetch(:rvm_map_bins).to_a.concat(%w(sidekiq sidekiqctl))
     set :chruby_map_bins, fetch(:chruby_map_bins).to_a.concat(%w{ sidekiq sidekiqctl })
     # Bundler integration
@@ -64,7 +65,7 @@ namespace :sidekiq do
 
   def options_for_process(index)
     process_options = fetch(:sidekiq_options_per_process)
-    process_options[idx]
+    process_options[index]
   end
 
   def pid_process_exists?(pid_file)
@@ -88,7 +89,14 @@ namespace :sidekiq do
   end
 
   def stop_sidekiq_on_complete(pid_file)
-    execute :sidekiq_manager, 'sidekiq', 'stop_on_complete', "#{pid_file}"
+    archive_pid_file(pid_file)
+    execute :sidekiq_manager, 'sidekiq', 'stop_on_complete', "--pidfile", "#{pid_file}.old", "-d"
+  end
+
+  def archive_pid_file(pid_file)
+    dirname, basename = File.split(pid_file)
+    new_file = File.join(dirname, basename + '.old')
+    File.rename(pid_file, new_file)
   end
 
   def quiet_sidekiq(pid_file)
@@ -106,7 +114,7 @@ namespace :sidekiq do
 
   def start_sidekiq(pid_file, process_options = nil)
     args = []
-    args.push "--index #{idx}"
+    # args.push "--index #{idx}"
     args.push "--pidfile #{pid_file}"
     args.push "--environment #{fetch(:sidekiq_env)}"
     args.push "--logfile #{fetch(:sidekiq_log)}" if fetch(:sidekiq_log)
@@ -188,7 +196,6 @@ namespace :sidekiq do
         end
       end
     end
-    Rake::Task["sidekiq:stop"].reenable
   end
 
   desc 'Start sidekiq'
@@ -204,7 +211,8 @@ namespace :sidekiq do
 
   desc 'Restart sidekiq'
   task :restart do
-    invoke 'sidekiq:stop'
+    stop_on_complete = fetch(:sidekiq_stop_on_complete)
+    invoke(stop_on_complete ? 'sidekiq:stop_on_complete' : 'sidekiq:stop')
     invoke 'sidekiq:start'
   end
 
