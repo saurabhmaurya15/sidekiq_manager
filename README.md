@@ -36,5 +36,5 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/saurab
 
 ## Motivation
 
-This gem is inspired by [capistrano-sidekiq](https://github.com/seuros/capistrano-sidekiq/issues/130).
+This gem is inspired by [capistrano-sidekiq](https://github.com/seuros/capistrano-sidekiq).
 
