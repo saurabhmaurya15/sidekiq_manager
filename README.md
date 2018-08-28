@@ -32,5 +32,9 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/Saurabh Maurya/sidekiq_manager.
+Bug reports and pull requests are welcome on GitHub at https://github.com/saurabhmaurya15/sidekiq_manager.
+
+## Motivation
+
+This gem is inspired by [capistrano-sidekiq](https://github.com/seuros/capistrano-sidekiq/issues/130).
 

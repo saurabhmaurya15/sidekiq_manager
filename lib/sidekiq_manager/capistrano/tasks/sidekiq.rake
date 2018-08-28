@@ -10,16 +10,15 @@ namespace :load do
     set :sidekiq_timeout, -> { 10 }
     set :sidekiq_role, -> { :app }
     set :sidekiq_processes, -> { 1 }
-    set :sidekiq_options_per_process, -> { nil }
-    set :sidekiq_pid_label_per_process, -> { [] }
+    set :sidekiq_options_per_process, -> { [] }
     set :sidekiq_stop_on_complete, -> { false }
     set :sidekiq_user, -> { nil }
     # Rbenv, Chruby, and RVM integration
     set :rbenv_map_bins, fetch(:rbenv_map_bins).to_a.concat(%w(sidekiq sidekiqctl sidekiq_manager))
-    set :rvm_map_bins, fetch(:rvm_map_bins).to_a.concat(%w(sidekiq sidekiqctl))
-    set :chruby_map_bins, fetch(:chruby_map_bins).to_a.concat(%w{ sidekiq sidekiqctl })
+    set :rvm_map_bins, fetch(:rvm_map_bins).to_a.concat(%w(sidekiq sidekiqctl sidekiq_manager))
+    set :chruby_map_bins, fetch(:chruby_map_bins).to_a.concat(%w{ sidekiq sidekiqctl sidekiq_manager})
     # Bundler integration
-    set :bundle_bins, fetch(:bundle_bins).to_a.concat(%w(sidekiq sidekiqctl))
+    set :bundle_bins, fetch(:bundle_bins).to_a.concat(%w(sidekiq sidekiqctl sidekiq_manager))
   end
 end
 
@@ -49,9 +48,11 @@ namespace :sidekiq do
     sidekiq_roles.each do |role|
       # next unless host.roles.include?(role)
       processes = fetch(:"#{ role }_processes") || fetch(:sidekiq_processes)
-      pid_labels = fetch(:"#{ role }_pid_label_per_process") || fetch(:sidekiq_pid_label_per_process)
+      sidekiq_options_per_process = fetch(:"#{ role }_options_per_process") || fetch(:sidekiq_options_per_process)
       processes.times do |idx|
-        pid_label = pid_labels[idx]
+        pid_label = nil
+        pid_label = sidekiq_options_per_process[idx][:pid_label] if sidekiq_options_per_process[idx]
+
         if pid_label.nil? || pid_label.empty?
           pids.push fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{idx}.pid")
         else
@@ -63,9 +64,9 @@ namespace :sidekiq do
     pids
   end
 
-  def options_for_process(index)
-    process_options = fetch(:sidekiq_options_per_process)
-    process_options[index]
+  def options_for_process(role, index)
+    options_for_process = fetch(:"#{ role }_options_per_process") || fetch(:sidekiq_options_per_process)
+    options_for_process[index][:args]
   end
 
   def pid_process_exists?(pid_file)
@@ -203,7 +204,7 @@ namespace :sidekiq do
     on roles fetch(:sidekiq_role) do |role|
       switch_user(role) do
         for_each_process do |pid_file, idx|
-          start_sidekiq(pid_file, options_for_process(idx)) unless pid_process_exists?(pid_file)
+          start_sidekiq(pid_file, options_for_process(role, idx)) unless pid_process_exists?(pid_file)
         end
       end
     end
