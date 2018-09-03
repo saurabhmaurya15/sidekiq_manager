@@ -2,6 +2,9 @@ require 'sidekiq/api'
 module SidekiqManager
   module Sidekiq
     class StopOnComplete
+      RETRY_IN_SECONDS = 30
+      WAIT_BEFORE_STOPPING = 30
+
       attr_reader :pid_file
 
       def initialize(pid_file)
@@ -33,14 +36,14 @@ module SidekiqManager
         return if sidekiq_process_quiet?
 
         sidekiq_process.quiet!
-        sleep 30
+        sleep WAIT_BEFORE_STOPPING
       end
 
       def stop_on_idle!
         begin
           process = sidekiq_process
           process.stop! if process['busy'].zero?
-          sleep 30
+          sleep RETRY_IN_SECONDS
         end until sidekiq_process.nil?
       end
 

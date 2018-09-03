@@ -197,6 +197,7 @@ namespace :sidekiq do
         end
       end
     end
+    Rake::Task["sidekiq:stop_on_complete"].reenable
   end
 
   desc 'Start sidekiq'

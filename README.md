@@ -32,6 +32,8 @@ finished processing all the jobs.
 ```ruby
 bundle exec sidekiq_manager stop_on_complete --pidfile [PID_FILE]
 ```
+Use `-d` option to run it as daemon.
+
 This behaviour can be used during deployment also which sends `quiet` signal at the start of the deployment and does a `stop_on_complete` & `start` to bring up the new processes.
 Old processes will be stopped once they have finished executing.
 
