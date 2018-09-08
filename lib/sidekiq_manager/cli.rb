@@ -2,11 +2,10 @@ require 'singleton'
 require 'optparse'
 require 'yaml'
 require 'sidekiq_manager/sidekiq/stop_on_complete'
-require 'byebug'
 
 module SidekiqManager
   class CLI
-    include Singleton
+    include Singleton unless $TESTING
 
     module Utilities
       SIDEKIQ = 'sidekiq'.freeze
@@ -26,8 +25,15 @@ module SidekiqManager
     end
 
     def run
-      SidekiqManager::Sidekiq::StopOnComplete.new(options[:pidfile]).process
+      case utility
+      when 'sidekiq'
+        run_sidekiq_operations
+      else
+        puts "invalid utility: #{utility}"
+      end
     end
+
+    private
 
     def setup_operation(args)
       if ARGV.length < 2
@@ -88,6 +94,15 @@ module SidekiqManager
       return unless options[:daemon]
 
       ::Process.daemon(true, false)
+    end
+
+    def run_sidekiq_operations
+      case command
+      when 'stop_on_complete'
+        SidekiqManager::Sidekiq::StopOnComplete.new(options[:pidfile]).process
+      else
+        puts "invalid command: #{command}"
+      end
     end
 
     def print_usage

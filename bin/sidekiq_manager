@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-# Quiet some warnings we see when running in warning mode:
-# RUBYOPT=-w bundle exec sidekiq
+# Usage:
+# bundle exec sidekiq_manager sidekiq --help
 $TESTING = false
 $DEBUG = false
 
