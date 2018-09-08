@@ -11,7 +11,7 @@ begin
   cli = SidekiqManager::CLI.instance
   cli.parse
   cli.run
-rescue => e
+rescue StandardError => e
   raise e if $DEBUG
   STDERR.puts e.message
   STDERR.puts e.backtrace.join("\n")

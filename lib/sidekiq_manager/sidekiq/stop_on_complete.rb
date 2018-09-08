@@ -21,7 +21,11 @@ module SidekiqManager
       private
 
       def pid_process_exists?
-        pid_file_exists? && (!!Process.kill(0, process_id) rescue false)
+        pid_file_exists? && (begin
+                               !!Process.kill(0, process_id)
+                             rescue StandardError
+                               false
+                             end)
       end
 
       def pid_file_exists?

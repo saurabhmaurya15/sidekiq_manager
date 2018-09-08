@@ -86,7 +86,7 @@ set :sidekiq_stop_on_complete, true
 ```
 If not set it does a normal sidekiq `stop`.
 
-Note: Only integrates with capistrano3
+Note: Supports Capistrano version 3 & above.
 
 ## Contributing
 

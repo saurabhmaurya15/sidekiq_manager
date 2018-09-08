@@ -10,15 +10,12 @@ end
 
 namespace :deploy do
   before :starting, :check_sidekiq_monit_hooks do
-    if fetch(:sidekiq_default_hooks) && fetch(:sidekiq_monit_default_hooks)
-      invoke 'sidekiq:monit:add_default_hooks'
-    end
+    invoke 'sidekiq:monit:add_default_hooks' if fetch(:sidekiq_default_hooks) && fetch(:sidekiq_monit_default_hooks)
   end
 end
 
 namespace :sidekiq do
   namespace :monit do
-
     task :add_default_hooks do
       before 'deploy:updating',  'sidekiq:monit:unmonitor'
       after  'deploy:published', 'sidekiq:monit:monitor'
@@ -43,7 +40,7 @@ namespace :sidekiq do
         fetch(:sidekiq_processes).times do |idx|
           begin
             sudo_if_needed "#{fetch(:monit_bin)} monitor #{sidekiq_service_name(idx)}"
-          rescue
+          rescue StandardError
             invoke 'sidekiq:monit:config'
             sudo_if_needed "#{fetch(:monit_bin)} monitor #{sidekiq_service_name(idx)}"
           end
@@ -57,7 +54,7 @@ namespace :sidekiq do
         fetch(:sidekiq_processes).times do |idx|
           begin
             sudo_if_needed "#{fetch(:monit_bin)} unmonitor #{sidekiq_service_name(idx)}"
-          rescue
+          rescue StandardError
             # no worries here
           end
         end
@@ -86,25 +83,21 @@ namespace :sidekiq do
     task :restart do
       on roles(fetch(:sidekiq_role)) do
         fetch(:sidekiq_processes).times do |idx|
-          sudo_if_needed"#{fetch(:monit_bin)} restart #{sidekiq_service_name(idx)}"
+          sudo_if_needed "#{fetch(:monit_bin)} restart #{sidekiq_service_name(idx)}"
         end
       end
     end
 
-    def sidekiq_service_name(index=nil)
+    def sidekiq_service_name(index = nil)
       fetch(:sidekiq_service_name, "sidekiq_#{fetch(:application)}_#{fetch(:sidekiq_env)}") + index.to_s
     end
 
     def sidekiq_config
-      if fetch(:sidekiq_config)
-        "--config #{fetch(:sidekiq_config)}"
-      end
+      "--config #{fetch(:sidekiq_config)}" if fetch(:sidekiq_config)
     end
 
     def sidekiq_concurrency
-      if fetch(:sidekiq_concurrency)
-        "--concurrency #{fetch(:sidekiq_concurrency)}"
-      end
+      "--concurrency #{fetch(:sidekiq_concurrency)}" if fetch(:sidekiq_concurrency)
     end
 
     def sidekiq_queues
@@ -114,15 +107,11 @@ namespace :sidekiq do
     end
 
     def sidekiq_logfile
-      if fetch(:sidekiq_log)
-        "--logfile #{fetch(:sidekiq_log)}"
-      end
+      "--logfile #{fetch(:sidekiq_log)}" if fetch(:sidekiq_log)
     end
 
     def sidekiq_require
-      if fetch(:sidekiq_require)
-        "--require #{fetch(:sidekiq_require)}"
-      end
+      "--require #{fetch(:sidekiq_require)}" if fetch(:sidekiq_require)
     end
 
     def sidekiq_options_per_process
