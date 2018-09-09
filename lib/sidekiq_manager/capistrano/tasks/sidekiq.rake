@@ -1,5 +1,3 @@
-require 'byebug'
-
 namespace :load do
   task :defaults do
     set :sidekiq_default_hooks, -> { true }
@@ -46,7 +44,8 @@ namespace :sidekiq do
     pids = []
     sidekiq_roles = Array(fetch(:sidekiq_role))
     sidekiq_roles.each do |role|
-      # next unless host.roles.include?(role)
+      next unless host.roles.include?(role)
+
       processes = fetch(:"#{ role }_processes") || fetch(:sidekiq_processes)
       sidekiq_options_per_process = fetch(:"#{ role }_options_per_process") || fetch(:sidekiq_options_per_process)
       processes.times do |idx|
@@ -113,9 +112,9 @@ namespace :sidekiq do
     end
   end
 
-  def start_sidekiq(pid_file, process_options = nil)
+  def start_sidekiq(pid_file, idx, process_options = nil)
     args = []
-    # args.push "--index #{idx}"
+    args.push "--index #{idx}"
     args.push "--pidfile #{pid_file}"
     args.push "--environment #{fetch(:sidekiq_env)}"
     args.push "--logfile #{fetch(:sidekiq_log)}" if fetch(:sidekiq_log)
@@ -199,7 +198,7 @@ namespace :sidekiq do
     on roles fetch(:sidekiq_role) do |role|
       switch_user(role) do
         for_each_process do |pid_file, idx|
-          start_sidekiq(pid_file, options_for_process(role, idx)) unless pid_process_exists?(pid_file)
+          start_sidekiq(pid_file, idx, options_for_process(role, idx)) unless pid_process_exists?(pid_file)
         end
       end
     end
@@ -218,7 +217,7 @@ namespace :sidekiq do
       switch_user(role) do
         for_each_process(true) do |pid_file, idx|
           stop_sidekiq(pid_file) if pid_process_exists?(pid_file)
-          start_sidekiq(pid_file, options_for_process(idx))
+          start_sidekiq(pid_file, idx, options_for_process(idx))
         end
       end
     end
@@ -244,7 +243,7 @@ namespace :sidekiq do
     on roles fetch(:sidekiq_role) do |role|
       switch_user(role) do
         for_each_process do |pid_file, idx|
-          start_sidekiq(pid_file, options_for_process(idx)) unless pid_file_exists?(pid_file)
+          start_sidekiq(pid_file, idx, options_for_process(idx)) unless pid_file_exists?(pid_file)
         end
       end
     end
