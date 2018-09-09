@@ -93,4 +93,4 @@ Note: Supports Capistrano version 3 & above.
 Bug reports and pull requests are welcome on GitHub at https://github.com/saurabhmaurya15/sidekiq_manager.
 
 ## Motivation
-This gem is inspired by [capistrano-sidekiq](https://github.com/seuros/capistrano-sidekiq). `capistrano-sidekiq` architecture unfortunately didn't allow us to extend it easily with the features we needed. Also we preferred some things to work differently and want to add more functionality to gem in future.
+Deployment functionality within this gem is inspired by [capistrano-sidekiq](https://github.com/seuros/capistrano-sidekiq). We have re-used some parts of `capistrano-sidekiq` but it's architecture unfortunately didn't allow us to extend it easily with the features we needed. Also we preferred some things to work differently and wanted to add more functionality to the gem in future.
