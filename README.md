@@ -7,7 +7,7 @@ integration for Capistrano deployment.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'sidekiq_manager', github: 'saurabhmaurya15/sidekiq_manager'
+gem 'sidekiq_manager', github: 'scripbox/sidekiq_manager'
 ```
 
 And then execute:
@@ -90,7 +90,7 @@ Note: Supports Capistrano version 3 & above.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/saurabhmaurya15/sidekiq_manager.
+Bug reports and pull requests are welcome on GitHub at https://github.com/scripbox/sidekiq_manager.
 
 ## Motivation
 Deployment functionality within this gem is inspired by [capistrano-sidekiq](https://github.com/seuros/capistrano-sidekiq). We have re-used some parts of `capistrano-sidekiq` but it's architecture unfortunately didn't allow us to extend it easily with the features we needed. Also we preferred some things to work differently and wanted to add more functionality to the gem in future.
