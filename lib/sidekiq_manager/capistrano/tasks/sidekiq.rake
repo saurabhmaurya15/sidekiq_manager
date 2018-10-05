@@ -96,7 +96,8 @@ namespace :sidekiq do
   def archive_pid_file(pid_file)
     dirname, basename = File.split(pid_file)
     new_file = File.join(dirname, basename + '.'+ Time.now.to_i.to_s + '.old')
-    File.rename(pid_file, new_file)
+    execute "mv #{pid_file} #{new_file}"
+    # File.rename(pid_file, new_file)
     new_file
   end
 
