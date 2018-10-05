@@ -89,14 +89,15 @@ namespace :sidekiq do
   end
 
   def stop_sidekiq_on_complete(pid_file)
-    archive_pid_file(pid_file)
-    execute :sidekiq_manager, 'sidekiq', 'stop_on_complete', '--pidfile', "#{pid_file}.old", '-d'
+    new_pid_file = archive_pid_file(pid_file)
+    execute :sidekiq_manager, 'sidekiq', 'stop_on_complete', '--pidfile', new_pid_file, '-d'
   end
 
   def archive_pid_file(pid_file)
     dirname, basename = File.split(pid_file)
-    new_file = File.join(dirname, basename + '.old')
+    new_file = File.join(dirname, basename + '.'+ Time.now.to_i.to_s + '.old')
     File.rename(pid_file, new_file)
+    new_file
   end
 
   def quiet_sidekiq(pid_file)
