@@ -1,4 +1,3 @@
-require 'sidekiq/api'
 module SidekiqManager
   module Sidekiq
     class StopOnComplete
@@ -46,8 +45,12 @@ module SidekiqManager
       def stop_on_idle!
         begin
           process = sidekiq_process
-          process.stop! if process['busy'].zero?
-          sleep RETRY_IN_SECONDS
+          if process['busy'].zero?
+            process.stop!
+            remove_pid_file
+          else
+            sleep RETRY_IN_SECONDS
+          end
         end until sidekiq_process.nil?
       end
 
@@ -58,6 +61,10 @@ module SidekiqManager
 
       def sidekiq_process_quiet?
         sidekiq_process['quiet'] == 'true'
+      end
+
+      def remove_pid_file
+        File.delete(pid_file) if File.exist?(pid_file)
       end
     end
   end

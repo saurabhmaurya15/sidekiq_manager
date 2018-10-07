@@ -25,6 +25,8 @@ module SidekiqManager
     end
 
     def run
+      boot_rails_application
+
       case utility
       when 'sidekiq'
         run_sidekiq_operations
@@ -103,6 +105,10 @@ module SidekiqManager
       else
         puts "invalid command: #{command}"
       end
+    end
+
+    def boot_rails_application
+      require File.expand_path('./config/environment.rb')
     end
 
     def print_usage
