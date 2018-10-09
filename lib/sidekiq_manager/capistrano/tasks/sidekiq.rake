@@ -90,7 +90,7 @@ namespace :sidekiq do
 
   def stop_sidekiq_on_complete(pid_file)
     new_pid_file = archive_pid_file(pid_file)
-    execute :sidekiq_manager, 'sidekiq', 'stop_on_complete', '--pidfile', new_pid_file, '-d'
+    execute :sidekiq_manager, 'sidekiq', 'stop_on_complete', '--pidfile', new_pid_file, "--environment #{fetch(:sidekiq_env)}", '-d'
   end
 
   def archive_pid_file(pid_file)
