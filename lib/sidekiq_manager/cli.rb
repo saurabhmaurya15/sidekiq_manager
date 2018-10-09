@@ -13,7 +13,7 @@ module SidekiqManager
     end
 
     alias die exit
-    attr_reader :options, :utility, :command
+    attr_reader :options, :utility, :command, :environment
 
     def initialize; end
 
@@ -49,6 +49,7 @@ module SidekiqManager
 
     def setup_options(args)
       opts = parse_options(args)
+      set_environment(opts[:environment])
       @options = opts
     end
 
@@ -62,6 +63,10 @@ module SidekiqManager
 
         o.on '-P', '--pidfile PATH', 'path to pidfile' do |arg|
           opts[:pidfile] = arg
+        end
+
+        o.on '-e', '--environment ENV', 'Application environment' do |arg|
+          opts[:environment] = arg
         end
 
         o.on '-V', '--version', 'Print version and exit' do |_arg|
@@ -78,10 +83,6 @@ module SidekiqManager
       @parser.parse!(argv)
 
       opts
-    end
-
-    def environment=(cli_env)
-      @environment = cli_env || ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
     end
 
     def validate!
@@ -108,7 +109,12 @@ module SidekiqManager
     end
 
     def boot_rails_application
+      ENV['RACK_ENV'] = ENV['RAILS_ENV'] = environment
       require File.expand_path('./config/environment.rb')
+    end
+
+    def set_environment(cli_env)
+      @environment = cli_env || ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
     end
 
     def print_usage
