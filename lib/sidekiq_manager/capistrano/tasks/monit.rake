@@ -88,6 +88,13 @@ namespace :sidekiq do
       end
     end
 
+    def sidekiq_process_env(idx)
+      env = sidekiq_options_per_process[idx].fetch(:env, {})
+      env.map do |k, v|
+        "#{k.upcase}=#{v}"
+      end.join(" ")
+    end
+
     def sidekiq_service_name(index = nil)
       fetch(:sidekiq_service_name, "sidekiq_#{fetch(:application)}_#{fetch(:sidekiq_env)}") + index.to_s
     end
