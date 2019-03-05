@@ -65,7 +65,7 @@ namespace :sidekiq do
 
   def options_for_process(role, index)
     options_for_process = fetch(:"#{ role }_options_per_process") || fetch(:sidekiq_options_per_process)
-    options_for_process[index][:args]
+    options_for_process[index]
   end
 
   def pid_process_exists?(pid_file)
@@ -129,9 +129,11 @@ namespace :sidekiq do
     args.push "--concurrency #{fetch(:sidekiq_concurrency)}" if fetch(:sidekiq_concurrency)
 
     # passed from sidekiq_options_per_process
-    args.push process_options if process_options
+    args.push process_options[:args] if process_options[:args]
     # use sidekiq_options for special options
     args.push fetch(:sidekiq_options) if fetch(:sidekiq_options)
+
+    process_env = process_options.fetch(:env, {})
 
     if defined?(JRUBY_VERSION)
       args.push '>/dev/null 2>&1 &'
@@ -139,10 +141,12 @@ namespace :sidekiq do
     else
       args.push '--daemon'
     end
-    if fetch(:start_sidekiq_in_background, fetch(:sidekiq_run_in_background))
-      background :sidekiq, args.compact.join(' ')
-    else
-      execute :sidekiq, args.compact.join(' ')
+    with process_env do
+      if fetch(:start_sidekiq_in_background, fetch(:sidekiq_run_in_background))
+        background :sidekiq, args.compact.join(' ')
+      else
+        execute :sidekiq, args.compact.join(' ')
+      end
     end
   end
 
