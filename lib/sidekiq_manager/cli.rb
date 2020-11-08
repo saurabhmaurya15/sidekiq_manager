@@ -65,6 +65,10 @@ module SidekiqManager
           opts[:pidfile] = arg
         end
 
+        o.on '-H', '--hostname HOSTNAME', 'hostname' do |arg|
+          opts[:hostname] = arg
+        end
+
         o.on '-e', '--environment ENV', 'Application environment' do |arg|
           opts[:environment] = arg
         end
@@ -102,7 +106,7 @@ module SidekiqManager
     def run_sidekiq_operations
       case command
       when 'stop_on_complete'
-        SidekiqManager::Sidekiq::StopOnComplete.new(options[:pidfile]).process
+        SidekiqManager::Sidekiq::StopOnComplete.new(options[:pidfile], options[:hostname]).process
       else
         puts "invalid command: #{command}"
       end

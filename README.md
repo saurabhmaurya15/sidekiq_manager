@@ -30,7 +30,7 @@ signal for sidekiq which stops a sidekiq process only when the process has
 finished processing all the jobs.
 
 ```ruby
-bundle exec sidekiq_manager stop_on_complete --pidfile [PID_FILE]
+bundle exec sidekiq_manager sidekiq stop_on_complete --pidfile [PID_FILE] --hostname HOST_NAME
 ```
 Use `-d` option to run it as daemon.
 
