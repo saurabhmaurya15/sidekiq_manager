@@ -4,10 +4,11 @@ module SidekiqManager
       RETRY_IN_SECONDS = 30
       WAIT_BEFORE_STOPPING = 30
 
-      attr_reader :pid_file
+      attr_reader :pid_file, :hostname
 
-      def initialize(pid_file)
+      def initialize(pid_file, hostname = nil)
         @pid_file = pid_file
+        @hostname = hostname
       end
 
       def process
@@ -56,6 +57,8 @@ module SidekiqManager
 
       def sidekiq_process
         ps = ::Sidekiq::ProcessSet.new
+        ps.find { |p| p['pid'] == process_id && p['hostname'] == hostname } if hostname.present?
+
         ps.find { |p| p['pid'] == process_id }
       end
 
